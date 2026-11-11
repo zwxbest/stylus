@@ -1,0 +1,148 @@
+/* ==UserStyle==
+@name           贴吧手机视图 · 吧内列表页
+@namespace      workbuddy.tieba.mobile
+@version        2.0.0
+@description    PC 版贴吧 /f 列表页在窄视口（Ctrl+Shift+M 手机视图）下的适配：正文放大、单图铺满限高、清除图片两侧空白
+@author         WorkBuddy
+==/UserStyle== */
+
+/*
+ * 选择器全部来自实机 DOM 实测（Playwright + 390x844 视口），不是猜测。
+ * 关键结构：
+ *   div.thread-card                                 卡片
+ *     div.thread-title  > span.text                 标题 15px
+ *     div.thread-content > span.text                摘要 15px/24px
+ *     div.thread-image
+ *       div.image-list-wrapper                      多图容器（子项 flex 33%）
+ *       div.lazy-img-wrapper                        单图瓦片（原本写死 190px 宽）
+ */
+
+@-moz-document url-prefix("https://tieba.baidu.com/f?"), url-prefix("http://tieba.baidu.com/f?") {
+
+  @media (max-width: 1100px) {
+
+    /* ============================================================
+     * 1. 布局铺满
+     * 原来主列被锁在 308px，两侧各留一大片空白
+     * ============================================================ */
+    .pc-main-page-layout,
+    .content-container,
+    .main-content,
+    .frs-page-wrap,
+    .frs-container,
+    .frs-main-container,
+    .left-container,
+    .feed-list-container,
+    .frs-feed-list {
+      width: 100% !important;
+      max-width: 100% !important;
+      min-width: 0 !important;
+    }
+
+    /* ============================================================
+     * 2. 卡片
+     * ============================================================ */
+    .thread-card {
+      padding: 10px 12px !important;
+      border-bottom: 1px solid #eceef0 !important;
+    }
+
+    /* ============================================================
+     * 3. 文字
+     * 标题 15px/18px → 17px/1.45
+     * 摘要 15px/24px → 15.5px/1.7
+     * ============================================================ */
+    .thread-title .tb-richtext {
+      line-height: 1.45 !important;
+    }
+    .thread-title .text {
+      font-size: 17px !important;
+      line-height: 1.45 !important;
+      font-weight: 600 !important;
+      color: #111 !important;
+    }
+    .thread-content .tb-richtext {
+      line-height: 1.7 !important;
+    }
+    .thread-content .text {
+      font-size: 15.5px !important;
+      line-height: 1.7 !important;
+      color: #333 !important;
+    }
+    .name-info {
+      font-size: 14.5px !important;
+    }
+    .desc-info,
+    .desc-info span {
+      font-size: 12.5px !important;
+    }
+
+    /* ============================================================
+     * 4. 图片：统一高度，宽度随比例，不裁剪
+     *
+     * 原来的问题：瓦片靠 aspect-ratio: 1.33 撑高，图片用 object-fit: cover
+     * 塞进去，真实比例的图被裁成只剩中间一条。
+     *
+     * 现在：高度固定（所有帖子图片一样高），宽度由图片自身比例推出来。
+     *   - 横图自然变宽，竖图自然变窄，画面完整不裁剪
+     *   - 超宽图宽度会顶到卡片边缘，此时上下留白（不裁）
+     *   - 超高图高度就是 20vh，宽度很窄，两侧自然留白
+     * 多图：瓦片是方形，等分 + contain 居中，不裁剪。
+     * ============================================================ */
+
+    /* 高度总开关：所有图片都是这个高度。想要更矮改小，比如 16vh */
+    .image-card-wrapper > .lazy-img-wrapper:only-child img {
+      height: 20vh !important;
+      width: auto !important;
+      max-width: 100% !important;
+      object-fit: contain !important;
+      display: block !important;
+    }
+    /* 瓦片贴合图片本身，不残留同色底板 */
+    .image-card-wrapper > .lazy-img-wrapper:only-child {
+      width: fit-content !important;
+      height: auto !important;
+      aspect-ratio: auto !important;
+      max-width: 100% !important;
+      display: inline-block !important;
+    }
+    .image-list-wrapper > .image-list-item {
+      flex: 1 1 0% !important;
+    }
+    .image-list-wrapper > .image-list-item img {
+      width: 100% !important;
+      height: 100% !important;
+      object-fit: contain !important;
+    }
+    .thread-image .lazy-img-wrapper,
+    .thread-image .image-list-item {
+      border-radius: 8px !important;
+      overflow: hidden !important;
+      background: #f4f5f7 !important;
+    }
+    .image-list-wrapper > .image-list-item {
+      flex: 1 1 0% !important;
+    }
+    .image-list-wrapper > .image-list-item img {
+      width: 100% !important;
+      height: 100% !important;
+      object-fit: contain !important;
+    }
+    .thread-image .lazy-img-wrapper,
+    .thread-image .image-list-item {
+      border-radius: 8px !important;
+      overflow: hidden !important;
+      background: #f4f5f7 !important;
+    }
+
+    /* ============================================================
+     * 5. 看图浮层放行
+     * 点开的大图是 el-image-viewer 组件，结构上不在 .thread-image 里，
+     * 天然不受上面规则影响。这里再兜一次底，确保它铺满屏幕。
+     * ============================================================ */
+    .el-image-viewer__img {
+      max-height: calc(100% - 40px) !important;
+      max-width: 100% !important;
+    }
+  }
+}

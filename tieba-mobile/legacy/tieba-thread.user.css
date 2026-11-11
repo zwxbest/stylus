@@ -1,0 +1,140 @@
+/* ==UserStyle==
+@name           贴吧手机视图 · 帖子详情页
+@namespace      workbuddy.tieba.mobile
+@version        2.0.0
+@description    PC 版贴吧 /p 帖子页在窄视口（Ctrl+Shift+M 手机视图）下的适配：正文放大、修掉内容溢出裁切、图片铺满限高
+@author         WorkBuddy
+==/UserStyle== */
+
+/*
+ * 选择器来自实机 DOM 实测（Playwright + 390x844 视口）。
+ *
+ * 关键结构：
+ *   div.pc-pb-box > div.container        ← min-width: 473px，是撑破屏幕的元凶
+ *     div.center-content                 ← 实际内容列
+ *       div.pb-title-wrap > span.pb-title          标题 20px/40px
+ *       div.pb-content-wrap > .richtext-item       正文 15px/25px
+ *         div.image-card-wrapper                   图片
+ *       div.pc-pb-reply-area
+ *         div.comment-content > .pb-rich-text       楼层正文 15px
+ *           div.pc-pb-comments-desc                 时间/赞/回复 14px
+ */
+
+@-moz-document url-prefix("https://tieba.baidu.com/p/"), url-prefix("http://tieba.baidu.com/p/") {
+
+  @media (max-width: 1100px) {
+
+    /* ============================================================
+     * 1. 修掉横向溢出（这页最严重的问题）
+     * .container 写死 min-width: 473px，在 390 宽的视口里
+     * 整个内容列被撑出屏幕，再被上层 overflow:hidden 裁掉右边，
+     * 表现为右侧文字看不全。
+     * ============================================================ */
+    .pc-pb-box .container,
+    .container {
+      min-width: 0 !important;
+      width: 100% !important;
+      max-width: 100% !important;
+      box-sizing: border-box !important;
+      padding-left: 12px !important;
+      padding-right: 12px !important;
+    }
+    .center-content,
+    .pb-content-wrap,
+    .pb-title-wrap,
+    .pc-pb-reply-area,
+    .pc-pb-reply-top,
+    .pc-pb-reply-list,
+    .pc-pb-reply-box,
+    .pc-pb-comments,
+    .pc-pb-first-floor-interactive,
+    .thread-container,
+    .reply-area,
+    .split {
+      width: 100% !important;
+      max-width: 100% !important;
+      min-width: 0 !important;
+      box-sizing: border-box !important;
+    }
+
+    /* ============================================================
+     * 2. 标题：20px/40px（行高太松）→ 19px/1.45
+     * ============================================================ */
+    .pb-title-wrap {
+      height: auto !important;
+      line-height: 1.45 !important;
+    }
+    .pb-title {
+      font-size: 19px !important;
+      line-height: 1.45 !important;
+      font-weight: 600 !important;
+      color: #111 !important;
+    }
+
+    /* ============================================================
+     * 3. 楼主正文：15px/25px → 16px/1.75
+     * ============================================================ */
+    .pb-content-wrap,
+    .pb-content-wrap .pb-text-wrapper,
+    .pb-content-wrap .pb-text-wrapper span {
+      font-size: 16px !important;
+      line-height: 1.75 !important;
+      color: #1f1f1f !important;
+    }
+
+    /* ============================================================
+     * 4. 楼层回复：15px → 15.5px/1.7
+     * ============================================================ */
+    .comment-content .pb-text-wrapper.text,
+    .comment-content .pb-text-wrapper.text span {
+      font-size: 15.5px !important;
+      line-height: 1.7 !important;
+      color: #222 !important;
+    }
+    .comment-content {
+      padding: 12px 0 !important;
+      border-bottom: 1px solid #f0f1f3 !important;
+    }
+    .pc-pb-comments-desc,
+    .pc-pb-comments-desc span {
+      font-size: 12.5px !important;
+      color: #999 !important;
+    }
+
+    /* ============================================================
+     * 5. 图片：不裁剪，宁可留白（与列表页同一套逻辑）
+     * 单图解开 aspect-ratio 让瓦片跟随图片比例；多图用 contain 居中。
+     * ============================================================ */
+    .pb-content-wrap .image-card-wrapper > .lazy-img-wrapper:only-child {
+      width: 100% !important;
+      height: auto !important;
+      aspect-ratio: auto !important;
+      max-height: none !important;
+    }
+    .pb-content-wrap .image-card-wrapper > .lazy-img-wrapper:only-child img {
+      width: 100% !important;
+      height: auto !important;
+      max-height: 45vh !important;
+      object-fit: contain !important;
+      display: block !important;
+    }
+    .pb-content-wrap .image-list-wrapper > .image-list-item {
+      flex: 1 1 0% !important;
+    }
+    .pb-content-wrap .image-list-wrapper > .image-list-item img {
+      width: 100% !important;
+      height: 100% !important;
+      object-fit: contain !important;
+    }
+    .pb-content-wrap .lazy-img-wrapper,
+    .pb-content-wrap .image-list-item {
+      border-radius: 8px !important;
+      overflow: hidden !important;
+      background: #f4f5f7 !important;
+    }
+    .el-image-viewer__img {
+      max-height: calc(100% - 40px) !important;
+      max-width: 100% !important;
+    }
+  }
+}
